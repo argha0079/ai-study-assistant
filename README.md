@@ -34,7 +34,7 @@ A command-line study assistant powered by the Google Gemini API. Ask it to expla
 1. **Clone the repo**
 
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/argha0079/ai-study-assistant.git
    cd ai-study-assistant
    ```
 
@@ -92,16 +92,6 @@ You: /exit
 |------------------|--------------------------|
 | `GEMINI_API_KEY` | Your Google Gemini API key |
 
-## Roadmap
-
-- [x] Day 1 — Basic topic explanation via Gemini API
-- [ ] Day 2 — Conversation memory (multi-turn context)
-- [ ] Day 3–4 — Express backend with `/explain` endpoint
-- [ ] Day 5–6 — Quiz generation mode (structured JSON output)
-- [ ] Day 7 — Minimal HTML frontend
-- [ ] Day 10–11 — Streaming responses
-- [ ] Day 14 — Deployment (Railway / Render)
-- [ ] Day 24–25 — RAG: question answering over uploaded documents
 
 ## Tech Stack
 
