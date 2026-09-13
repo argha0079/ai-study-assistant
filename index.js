@@ -1,8 +1,5 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import * as readline from "readline";
-import { explainTopic } from "./services/aiService.js";
+import { explainTopic } from "./src/services/aiService.js";
 
 const rl = readline.createInterface({
     input: process.stdin,
