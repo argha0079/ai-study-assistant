@@ -6,8 +6,31 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-rl.question("Enter a topic to learn: ", async (topic) => {
-    const explanation = await explainTopic(topic);
-    console.log("\n" + explanation);
-    rl.close();
+const prompt = () => rl.question("You: ", async (input) => {
+
+    const trimmed = input.trim();
+
+    if (!trimmed) return prompt();
+    if (trimmed === "/exit") {
+        console.log("Goodbye!");
+        rl.close();
+        return;
+    }
+    if (trimmed === "/clear") {
+        clearHistory();
+        console.log("Conversation cleared.\n");
+        return prompt();
+    }
+    try {
+        const response = await explainTopic(trimmed);
+        console.log(`\nAssistant: ${response}\n`);
+    } catch (err) {
+        console.error(`Error: ${err.message}\n`);
+    }
+
+    prompt();
 });
+
+console.log('AI Study Assistant ready. Type /clear to reset, /exit to quit.\n');
+
+prompt();

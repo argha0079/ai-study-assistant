@@ -1,9 +1,30 @@
 import model from "../config/gemini.js";
 
-export async function explainTopic(topic) {
-    const prompt = `You are an expert CS teacher. Explain this topic clearly and concisely to a first-year CS student: ${topic}`;
+const sessions = new Map();
 
-    const result = await model.generateContent(prompt);
+function getHistory(sessionId) {
+    if (!sessions.has(sessionId)) {
+        sessions.set(sessionId, []);
+    }
+    return sessions.get(sessionId);
+}
 
-    return result.response.text();
+export async function explainTopic(sessionId, userMessage) {
+    const history = getHistory(sessionId);
+
+    history.push({ role: "user", parts: [{ text: userMessage }] });
+
+    const result = await model.generateContent({
+        contents: history,
+        systemInstruction: "You are a helpful study assistant. Explain concepts clearly and concisely.",
+    });
+
+    const responseText = result.response.text();
+    history.push({ role: "model", parts: [{ text: responseText }] });
+
+    return responseText;
+}
+
+export function clearHistory(sessionId) {
+    sessions.delete(sessionId);
 }
