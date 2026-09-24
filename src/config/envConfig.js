@@ -4,5 +4,6 @@ config();
 
 export const {
     API_KEY,
-    PORT
+    PORT,
+    DATABASE_URL
 } = process.env;

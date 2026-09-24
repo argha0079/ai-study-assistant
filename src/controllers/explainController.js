@@ -8,13 +8,13 @@ export async function explainController(req, res) {
     })
 }
 export async function quizController(req, res) {
-    const { topic, numQuestions } = req.body;
+    const { topic, numQuestions, difficulty } = req.body;
     if (!topic || typeof topic !== "string" || topic.trim().length === 0) {
         return res.status(400).json({
             error: { code: "INVALID_INPUT", message: "topic must be a non-empty string" }
         });
     }
-    const quiz = await generateQuiz(topic.trim(), numQuestions);
+    const quiz = await generateQuiz(topic.trim(), numQuestions, difficulty);
     res.status(200).json({ quiz });
 }
 export async function clearHistoryController (req, res) {

@@ -1,4 +1,4 @@
-import model from "../config/gemini.js";
+import groq from "../config/groq.js";
 
 const sessions = new Map();
 
@@ -9,37 +9,61 @@ function getHistory(sessionId) {
 
 export async function explainTopic(sessionId, userMessage) {
     const history = getHistory(sessionId);
-    history.push({ role: "user", parts: [{ text: userMessage }] });
 
-    const result = await model.generateContent({
-        contents: history,
-        systemInstruction: "You are a helpful study assistant. Explain concepts clearly and concisely.",
+    history.push({ role: "user", content: userMessage });
+
+    const result = await groq.chat.completions.create({
+        model: "openai/gpt-oss-20b",
+        messages: [
+            { role: "system", content: "You are a helpful study assistant. Explain concepts clearly and concisely." },
+            ...history,
+        ],
     });
 
-    const responseText = result.response.text();
-    history.push({ role: "model", parts: [{ text: responseText }] });
+    const responseText = result.choices[0].message.content;
+    history.push({ role: "assistant", content: responseText });
+
     return responseText;
 }
 
-export async function generateQuiz(topic, numQuestions = 5) {
-    const prompt = `Generate a quiz about "${topic}" with exactly ${numQuestions} multiple choice questions.
-Return ONLY a valid JSON array. No explanation, no markdown, no backticks.
-Format:
+export async function generateQuiz(topic, numQuestions = 5, difficulty = "medium") {
+    const difficultyInstructions = {
+        easy: "Focus on basic definitions and simple recall.",
+        medium: "Focus on application and understanding.",
+        hard: "Focus on edge cases, tradeoffs, and deep understanding.",
+    };
+
+    const result = await groq.chat.completions.create({
+        model: "openai/gpt-oss-20b",
+        messages: [
+            {
+                role: "system",
+                content: "You are a quiz generator. Return ONLY valid JSON arrays. No markdown, no backticks, no explanation.",
+            },
+            {
+                role: "user",
+                content: `Generate a quiz about "${topic}" with exactly ${numQuestions} multiple choice questions.
+Difficulty: ${difficulty} — ${difficultyInstructions[difficulty]}
+
+Each question must follow this exact format:
 [
   {
-    "question": "...",
-    "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
-    "answer": "A"
+    "question": "What is a base case in recursion?",
+    "options": ["A. The first function call", "B. The condition that stops recursion", "C. The return value", "D. The recursive call"],
+    "answer": "B",
+    "explanation": "The base case stops recursive calls, preventing infinite recursion."
   }
-]`;
+]`,
+            },
+        ],
+    });
 
-    const result = await model.generateContent(prompt);
-    const raw = result.response.text().trim();
+    const raw = result.choices[0].message.content.trim();
 
     try {
-        const quiz = JSON.parse(raw);
-        if (!Array.isArray(quiz)) throw new Error("Response is not an array");
-        return quiz;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) throw new Error("Response is not an array");
+        return parsed;
     } catch (err) {
         throw new Error(`Failed to parse quiz response: ${err.message}`);
     }
