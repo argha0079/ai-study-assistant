@@ -4,4 +4,5 @@ config();
 
 export const {
     API_KEY,
+    PORT
 } = process.env;
