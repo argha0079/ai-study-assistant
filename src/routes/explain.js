@@ -1,26 +1,24 @@
 import express from "express";
 import { explainTopic, clearHistory } from "../services/aiService.js";
+import { validateExplainRequest } from "../middleware/validate.js";
 
 const router = express.Router();
 
-router.post("/explain", async (req, res) => {
-    const { sessionId, topic } = req.body;
-
-    if (!sessionId || !topic) {
-        return res.status(400).json({ error: "sessionId and topic are required" });
-    }
-
+router.post("/explain", validateExplainRequest, async (req, res, next) => {
     try {
+        const { sessionId, topic } = req.body;
         const explanation = await explainTopic(sessionId, topic);
         res.json({ explanation });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        next(err); // passes to global error handler
     }
 });
 
 router.post("/clear", (req, res) => {
     const { sessionId } = req.body;
-    if (!sessionId) return res.status(400).json({ error: "sessionId required" });
+    if (!sessionId) return res.status(400).json({
+        error: { code: "INVALID_INPUT", message: "sessionId required" }
+    });
     clearHistory(sessionId);
     res.json({ message: "History cleared" });
 });
