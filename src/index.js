@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import explainRouter from "./routes/explain.js";
+import apiRoutes from "./routes/apiRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
 import { PORT } from "./config/envConfig.js";
 import { connectDatabase } from "./config/dbConfig.js";
@@ -18,7 +18,7 @@ const setupAndStartServer = () => {
         });
     });
 
-    app.use("/api", explainRouter);
+    app.use("/api", apiRoutes);
     app.use(errorHandler);
 
     app.listen(PORT, async () => {
