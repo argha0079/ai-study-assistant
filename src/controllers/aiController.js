@@ -10,7 +10,7 @@ export const explainController = async (req, res) => {
 };
 
 export const explainStreamController = async (req, res) => {
-    const { topic } = req.body;
+    const { topic, mode } = req.body;
     if (!topic?.trim()) {
         return res.status(400).json({ error: { code: "INVALID_INPUT", message: "topic is required" } });
     }
@@ -22,7 +22,7 @@ export const explainStreamController = async (req, res) => {
     res.flushHeaders();
 
     try {
-        await explainTopicStream(req.userId, topic, (token) => {
+        await explainTopicStream(req.userId, topic, mode, (token) => {
             res.write(`data: ${JSON.stringify({ token })}\n\n`);
         });
 

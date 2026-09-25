@@ -1,5 +1,5 @@
 import express from "express";
-import { clearController, explainController, quizController, explainStreamController } from "../controllers/explainController.js";
+import { clearController, explainController, quizController, explainStreamController } from "../controllers/aiController.js";
 
 const router = express.Router();
 

@@ -2,6 +2,54 @@ import groq from "../config/groq.js";
 import { getHistory, saveHistory, deleteHistory } from "./sessionService.js";
 import { GROQ_MODEL } from "../config/envConfig.js"
 
+const systemPrompts = {
+    eli5: `You are a study assistant explaining to a 10-year-old.
+Use simple words, fun analogies, and short sentences.
+No code. No jargon. Make it feel like a story.`,
+
+    standard: `You are a study assistant for computer science students.
+Always respond in this exact format:
+**What it is:** (1 sentence)
+**Why it matters:** (1-2 sentences)
+**Example:** (code or real-world, 3-5 lines)
+**Remember:** (one key takeaway)
+Keep total response under 250 words.`,
+
+    senior: `You are a study assistant for senior software engineers.
+Skip fundamentals. Focus on edge cases, tradeoffs, performance implications, and production considerations.
+Use technical terminology freely. Include non-obvious behavior and gotchas.`,
+};
+
+export async function explainTopicStream(userId, userMessage, mode = "standard", onToken) {
+    const history = await getHistory(userId);
+    history.push({ role: "user", content: userMessage });
+
+    const systemPrompt = systemPrompts[mode] || systemPrompts.standard;
+
+    const stream = await groq.chat.completions.create({
+        model: GROQ_MODEL,
+        temperature: mode === "eli5" ? 0.7 : 0.3,
+        messages: [
+            { role: "system", content: systemPrompt },
+            ...history,
+        ],
+        stream: true,
+    });
+
+    let fullResponse = "";
+
+    for await (const chunk of stream) {
+        const token = chunk.choices[0]?.delta?.content || "";
+        if (token) {
+            fullResponse += token;
+            onToken(token);
+        }
+    }
+
+    history.push({ role: "assistant", content: fullResponse });
+    await saveHistory(userId, history);
+    return fullResponse;
+}
 export async function explainTopic(sessionId, userMessage) {
     const history = getHistory(sessionId);
 
@@ -68,31 +116,3 @@ export async function clearHistory(userId) {
     await deleteHistory(userId);
 }
 
-export async function explainTopicStream(userId, userMessage, onToken) {
-    const history = await getHistory(userId);
-    history.push({ role: "user", content: userMessage });
-
-    const stream = await groq.chat.completions.create({
-        model: GROQ_MODEL,
-        messages: [
-            { role: "system", content: "You are a helpful study assistant. Explain concepts clearly and concisely." },
-            ...history,
-        ],
-        stream: true,
-    });
-
-    let fullResponse = "";
-
-    for await (const chunk of stream) {
-        const token = chunk.choices[0]?.delta?.content || "";
-        if (token) {
-            fullResponse += token;
-            onToken(token);
-        }
-    }
-
-    history.push({ role: "assistant", content: fullResponse });
-    await saveHistory(userId, history);
-
-    return fullResponse;
-}
