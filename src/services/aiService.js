@@ -1,6 +1,7 @@
 import groq from "../config/groq.js";
 import { getHistory, saveHistory, deleteHistory } from "./sessionService.js";
-import { GROQ_MODEL } from "../config/envConfig.js"
+import { GROQ_MODEL } from "../config/envConfig.js";
+import ServiceError from "../utils/errors/ServiceError.js";
 
 const systemPrompts = {
     eli5: `You are a study assistant explaining to a 10-year-old.
@@ -21,71 +22,83 @@ Use technical terminology freely. Include non-obvious behavior and gotchas.`,
 };
 
 export async function explainTopicStream(userId, userMessage, mode = "standard", onToken) {
-    const history = await getHistory(userId);
-    history.push({ role: "user", content: userMessage });
+    try {
+        const history = await getHistory(userId);
+        history.push({ role: "user", content: userMessage });
 
-    const systemPrompt = systemPrompts[mode] || systemPrompts.standard;
+        const systemPrompt = systemPrompts[mode] || systemPrompts.standard;
 
-    const stream = await groq.chat.completions.create({
-        model: GROQ_MODEL,
-        temperature: mode === "eli5" ? 0.7 : 0.3,
-        messages: [
-            { role: "system", content: systemPrompt },
-            ...history,
-        ],
-        stream: true,
-    });
+        const stream = await groq.chat.completions.create({
+            model: GROQ_MODEL,
+            temperature: mode === "eli5" ? 0.7 : 0.3,
+            messages: [
+                { role: "system", content: systemPrompt },
+                ...history,
+            ],
+            stream: true,
+        });
 
-    let fullResponse = "";
+        let fullResponse = "";
 
-    for await (const chunk of stream) {
-        const token = chunk.choices[0]?.delta?.content || "";
-        if (token) {
-            fullResponse += token;
-            onToken(token);
+        for await (const chunk of stream) {
+            const token = chunk.choices[0]?.delta?.content || "";
+            if (token) {
+                fullResponse += token;
+                onToken(token);
+            }
         }
+
+        history.push({ role: "assistant", content: fullResponse });
+        await saveHistory(userId, history);
+        return fullResponse;
+    } catch (error) {
+        if (error instanceof ServiceError) throw error;
+        throw new ServiceError("Failed to generate streaming explanation", error.message);
     }
-
-    history.push({ role: "assistant", content: fullResponse });
-    await saveHistory(userId, history);
-    return fullResponse;
 }
+
 export async function explainTopic(sessionId, userMessage) {
-    const history = getHistory(sessionId);
+    try {
+        const history = getHistory(sessionId);
 
-    history.push({ role: "user", content: userMessage });
+        history.push({ role: "user", content: userMessage });
 
-    const result = await groq.chat.completions.create({
-        model: GROQ_MODEL,
-        messages: [
-            { role: "system", content: "You are a helpful study assistant. Explain concepts clearly and concisely." },
-            ...history,
-        ],
-    });
+        const result = await groq.chat.completions.create({
+            model: GROQ_MODEL,
+            messages: [
+                { role: "system", content: "You are a helpful study assistant. Explain concepts clearly and concisely." },
+                ...history,
+            ],
+        });
 
-    const responseText = result.choices[0].message.content;
-    history.push({ role: "assistant", content: responseText });
+        const responseText = result.choices[0].message.content;
+        history.push({ role: "assistant", content: responseText });
 
-    return responseText;
+        return responseText;
+    } catch (error) {
+        if (error instanceof ServiceError) throw error;
+        throw new ServiceError("Failed to generate explanation", error.message);
+    }
 }
 
 export async function generateQuiz(topic, numQuestions = 5, difficulty = "medium") {
-    const difficultyInstructions = {
-        easy: "Focus on basic definitions and simple recall.",
-        medium: "Focus on application and understanding.",
-        hard: "Focus on edge cases, tradeoffs, and deep understanding.",
-    };
+    try {
+        const difficultyInstructions = {
+            easy: "Focus on basic definitions and simple recall.",
+            medium: "Focus on application and understanding.",
+            hard: "Focus on edge cases, tradeoffs, and deep understanding.",
+        };
 
-    const result = await groq.chat.completions.create({
-        model: GROQ_MODEL,
-        messages: [
-            {
-                role: "system",
-                content: "You are a quiz generator. Return ONLY valid JSON arrays. No markdown, no backticks, no explanation.",
-            },
-            {
-                role: "user",
-                content: `Generate a quiz about "${topic}" with exactly ${numQuestions} multiple choice questions.
+        const result = await groq.chat.completions.create({
+            model: GROQ_MODEL,
+            messages: [
+                {
+                    role: "system",
+                    content: "You are a quiz generator. Return ONLY valid JSON arrays. No markdown, no backticks, no explanation.",
+                },
+                {
+                    role: "user",
+                    content: `Generate a quiz about "${topic}" with exactly ${numQuestions} multiple choice questions.
 Difficulty: ${difficulty} — ${difficultyInstructions[difficulty]}
 
 Each question must follow this exact format:
@@ -97,22 +110,30 @@ Each question must follow this exact format:
     "explanation": "The base case stops recursive calls, preventing infinite recursion."
   }
 ]`,
-            },
-        ],
-    });
+                },
+            ],
+        });
 
-    const raw = result.choices[0].message.content.trim();
+        const raw = result.choices[0].message.content.trim();
 
-    try {
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed)) throw new Error("Response is not an array");
-        return parsed;
-    } catch (err) {
-        throw new Error(`Failed to parse quiz response: ${err.message}`);
+        try {
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) throw new Error("Response is not an array");
+            return parsed;
+        } catch (err) {
+            throw new ServiceError("Failed to parse quiz response", err.message);
+        }
+    } catch (error) {
+        if (error instanceof ServiceError) throw error;
+        throw new ServiceError("Failed to generate quiz", error.message);
     }
 }
 
 export async function clearHistory(userId) {
-    await deleteHistory(userId);
+    try {
+        await deleteHistory(userId);
+    } catch (error) {
+        if (error instanceof ServiceError) throw error;
+        throw new ServiceError("Failed to clear history", error.message);
+    }
 }
-
