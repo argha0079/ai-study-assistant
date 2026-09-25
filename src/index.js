@@ -8,13 +8,18 @@ import { connectDatabase } from "./config/dbConfig.js";
 const app = express();
 const setupAndStartServer = () => {
 
-    app.use(cors({ origin: "http://localhost:5173" }));
+    app.use(cors({
+        origin: [
+            "http://localhost:5173",
+            "https://ai-study-assistant-frontend-j44eg030i-hack-nova5.vercel.app"
+        ]
+    }));
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
     app.get("/health", (req, res) => {
-        res.status(200).json({ 
-            status: "ok", uptime: process.uptime() 
+        res.status(200).json({
+            status: "ok", uptime: process.uptime()
         });
     });
 
