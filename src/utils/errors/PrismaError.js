@@ -1,4 +1,4 @@
-import { Prisma } from "../../generated/prisma/index.js";
+import { Prisma } from "../../../generated/prisma/index.js";
 import { StatusCodes } from "http-status-codes";
 
 class PrismaError extends Error {
