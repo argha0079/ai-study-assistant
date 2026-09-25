@@ -4,6 +4,6 @@ import explainRouter from "./explain.js"
 const router = Router();
 
 router.use("/users", authRouter);
-router.use("/chat", explainRouter);
+router.use("/chats", explainRouter);
 
 export default router;

@@ -1,11 +1,6 @@
 import groq from "../config/groq.js";
-
-const sessions = new Map();
-
-function getHistory(sessionId) {
-    if (!sessions.has(sessionId)) sessions.set(sessionId, []);
-    return sessions.get(sessionId);
-}
+import { getHistory, saveHistory, deleteHistory } from "./sessionService.js";
+import { GROQ_MODEL } from "../config/envConfig.js"
 
 export async function explainTopic(sessionId, userMessage) {
     const history = getHistory(sessionId);
@@ -13,7 +8,7 @@ export async function explainTopic(sessionId, userMessage) {
     history.push({ role: "user", content: userMessage });
 
     const result = await groq.chat.completions.create({
-        model: "openai/gpt-oss-20b",
+        model: GROQ_MODEL,
         messages: [
             { role: "system", content: "You are a helpful study assistant. Explain concepts clearly and concisely." },
             ...history,
@@ -34,7 +29,7 @@ export async function generateQuiz(topic, numQuestions = 5, difficulty = "medium
     };
 
     const result = await groq.chat.completions.create({
-        model: "openai/gpt-oss-20b",
+        model: GROQ_MODEL,
         messages: [
             {
                 role: "system",
@@ -69,6 +64,35 @@ Each question must follow this exact format:
     }
 }
 
-export function clearHistory(sessionId) {
-    sessions.delete(sessionId);
+export async function clearHistory(userId) {
+    await deleteHistory(userId);
+}
+
+export async function explainTopicStream(userId, userMessage, onToken) {
+    const history = await getHistory(userId);
+    history.push({ role: "user", content: userMessage });
+
+    const stream = await groq.chat.completions.create({
+        model: GROQ_MODEL,
+        messages: [
+            { role: "system", content: "You are a helpful study assistant. Explain concepts clearly and concisely." },
+            ...history,
+        ],
+        stream: true,
+    });
+
+    let fullResponse = "";
+
+    for await (const chunk of stream) {
+        const token = chunk.choices[0]?.delta?.content || "";
+        if (token) {
+            fullResponse += token;
+            onToken(token);
+        }
+    }
+
+    history.push({ role: "assistant", content: fullResponse });
+    await saveHistory(userId, history);
+
+    return fullResponse;
 }

@@ -1,27 +1,49 @@
-import { explainTopic, clearHistory, generateQuiz } from "../services/aiService.js";
+import { explainTopic, explainTopicStream, generateQuiz, clearHistory } from "../services/aiService.js";
 
-export async function explainController(req, res) {
-    const { sessionId, topic } = req.body;
-    const explanation = await explainTopic(sessionId, topic);
-    res.status(200).json({
-        explanation
-    })
-}
-export async function quizController(req, res) {
-    const { topic, numQuestions, difficulty } = req.body;
-    if (!topic || typeof topic !== "string" || topic.trim().length === 0) {
-        return res.status(400).json({
-            error: { code: "INVALID_INPUT", message: "topic must be a non-empty string" }
-        });
+export const explainController = async (req, res) => {
+    const { topic } = req.body;
+    if (!topic?.trim()) {
+        return res.status(400).json({ error: { code: "INVALID_INPUT", message: "topic is required" } });
     }
-    const quiz = await generateQuiz(topic.trim(), numQuestions, difficulty);
-    res.status(200).json({ quiz });
-}
-export async function clearHistoryController (req, res) {
-    const { sessionId } = req.body;
-    if (!sessionId) return res.status(400).json({
-        error: { code: "INVALID_INPUT", message: "sessionId required" }
-    });
-    clearHistory(sessionId);
+    const explanation = await explainTopic(req.userId, topic);
+    res.json({ explanation });
+};
+
+export const explainStreamController = async (req, res) => {
+    const { topic } = req.body;
+    if (!topic?.trim()) {
+        return res.status(400).json({ error: { code: "INVALID_INPUT", message: "topic is required" } });
+    }
+
+    // SSE headers
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    try {
+        await explainTopicStream(req.userId, topic, (token) => {
+            res.write(`data: ${JSON.stringify({ token })}\n\n`);
+        });
+
+        res.write("data: [DONE]\n\n");
+    } catch (err) {
+        res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+    }
+
+    res.end();
+};
+
+export const quizController = async (req, res) => {
+    const { topic, numQuestions, difficulty } = req.body;
+    if (!topic?.trim()) {
+        return res.status(400).json({ error: { code: "INVALID_INPUT", message: "topic is required" } });
+    }
+    const quiz = await generateQuiz(topic, numQuestions, difficulty);
+    res.json({ quiz });
+};
+
+export const clearController = async (req, res) => {
+    await clearHistory(req.userId);
     res.json({ message: "History cleared" });
-}
+};
