@@ -47,8 +47,8 @@ export const githubCallback = async (req, res, next) => {
         const data = await loginWithOAuth(req.user.id);
         res.cookie("refreshToken", data.refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            secure: true,
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
@@ -70,8 +70,8 @@ export const login = async (req, res, next) => {
         const data = await loginUser(email, password);
         res.cookie("refreshToken", data.refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            secure:  true,
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
@@ -96,8 +96,8 @@ export const refresh = async (req, res, next) => {
         const data = await refreshAccessToken(refreshToken);
         res.cookie("refreshToken", data.refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            secure: true,
+            sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
         res.json({
