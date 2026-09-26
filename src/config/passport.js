@@ -13,11 +13,14 @@ import {
     createOAuthUser,
     linkProvider,
 } from "../repository/userRepository.js";
-logger.info("GitHub OAuth env check:", {
+
+/* eslint-disable no-console */
+console.log("GitHub OAuth env check:", {
     clientId: Boolean(GITHUB_CLIENT_ID),
     clientSecret: Boolean(GITHUB_CLIENT_SECRET),
     callbackUrl: Boolean(GITHUB_CALLBACK_URL),
 });
+/* eslint-disable no-console */
 
 passport.use(
     new GitHubStrategy(
