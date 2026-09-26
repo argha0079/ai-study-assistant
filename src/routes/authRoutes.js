@@ -5,7 +5,7 @@ import {
     refresh,
     logout,
     verify,
-    githubCallback
+    githubCallback,
 } from "../controllers/authController.js";
 import passport from "passport";
 

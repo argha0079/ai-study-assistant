@@ -61,11 +61,7 @@ export const verifyEmail = async (email, otp) => {
 
 export const loginWithOAuth = async (userId) => {
     const { accessToken, refreshToken } = generateTokens(userId);
-    await createRefreshToken(
-        refreshToken,
-        userId,
-        getRefreshExpiry()
-    );
+    await createRefreshToken(refreshToken, userId, getRefreshExpiry());
     return { accessToken, refreshToken };
 };
 

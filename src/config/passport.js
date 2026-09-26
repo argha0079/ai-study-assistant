@@ -37,10 +37,7 @@ passport.use(
                 }
 
                 // Existing GitHub user
-                let user = await findUserByProvider(
-                    provider,
-                    providerId
-                );
+                let user = await findUserByProvider(provider, providerId);
 
                 if (user) {
                     return done(null, user);
@@ -50,22 +47,13 @@ passport.use(
                 user = await findUserByEmail(email);
 
                 if (user) {
-                    user = await linkProvider(
-                        user.id,
-                        provider,
-                        providerId
-                    );
+                    user = await linkProvider(user.id, provider, providerId);
 
                     return done(null, user);
                 }
 
                 // New OAuth user
-                user = await createOAuthUser(
-                    email,
-                    name,
-                    provider,
-                    providerId
-                );
+                user = await createOAuthUser(email, name, provider, providerId);
 
                 return done(null, user);
             } catch (error) {

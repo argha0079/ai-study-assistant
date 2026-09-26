@@ -9,7 +9,7 @@ import { PORT } from "./config/envConfig.js";
 import { connectDatabase } from "./config/dbConfig.js";
 import { connectRedis } from "./config/redisConfig.js";
 import passport from "passport";
-import "./config/passport.js"
+import "./config/passport.js";
 
 const app = express();
 const setupAndStartServer = () => {
@@ -19,7 +19,7 @@ const setupAndStartServer = () => {
                 "http://localhost:5173",
                 "https://ai-study-assistant-frontend-j44eg030i-hack-nova5.vercel.app",
             ],
-            credentials: true
+            credentials: true,
         })
     );
     app.use(morganMiddleware);

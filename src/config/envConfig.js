@@ -14,5 +14,5 @@ export const {
     GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET,
     GITHUB_CALLBACK_URL,
-    FRONTEND_URL
+    FRONTEND_URL,
 } = process.env;

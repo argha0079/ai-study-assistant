@@ -82,12 +82,7 @@ export const findUserByProvider = async (provider, providerId) => {
     }
 };
 
-export const createOAuthUser = async (
-    email,
-    name,
-    provider,
-    providerId
-) => {
+export const createOAuthUser = async (email, name, provider, providerId) => {
     try {
         return await prisma.user.create({
             data: {
@@ -114,11 +109,7 @@ export const createOAuthUser = async (
     }
 };
 
-export const linkProvider = async (
-    userId,
-    provider,
-    providerId
-) => {
+export const linkProvider = async (userId, provider, providerId) => {
     try {
         return await prisma.user.update({
             where: { id: userId },
