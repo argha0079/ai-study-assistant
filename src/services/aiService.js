@@ -21,7 +21,12 @@ Skip fundamentals. Focus on edge cases, tradeoffs, performance implications, and
 Use technical terminology freely. Include non-obvious behavior and gotchas.`,
 };
 
-export async function explainTopicStream(userId, userMessage, mode = "standard", onToken) {
+export async function explainTopicStream(
+    userId,
+    userMessage,
+    mode = "standard",
+    onToken
+) {
     try {
         const history = await getHistory(userId);
         history.push({ role: "user", content: userMessage });
@@ -31,10 +36,7 @@ export async function explainTopicStream(userId, userMessage, mode = "standard",
         const stream = await groq.chat.completions.create({
             model: GROQ_MODEL,
             temperature: mode === "eli5" ? 0.7 : 0.3,
-            messages: [
-                { role: "system", content: systemPrompt },
-                ...history,
-            ],
+            messages: [{ role: "system", content: systemPrompt }, ...history],
             stream: true,
         });
 
@@ -53,7 +55,10 @@ export async function explainTopicStream(userId, userMessage, mode = "standard",
         return fullResponse;
     } catch (error) {
         if (error instanceof ServiceError) throw error;
-        throw new ServiceError("Failed to generate streaming explanation", error.message);
+        throw new ServiceError(
+            "Failed to generate streaming explanation",
+            error.message
+        );
     }
 }
 
@@ -66,7 +71,11 @@ export async function explainTopic(sessionId, userMessage) {
         const result = await groq.chat.completions.create({
             model: GROQ_MODEL,
             messages: [
-                { role: "system", content: "You are a helpful study assistant. Explain concepts clearly and concisely." },
+                {
+                    role: "system",
+                    content:
+                        "You are a helpful study assistant. Explain concepts clearly and concisely.",
+                },
                 ...history,
             ],
         });
@@ -81,7 +90,11 @@ export async function explainTopic(sessionId, userMessage) {
     }
 }
 
-export async function generateQuiz(topic, numQuestions = 5, difficulty = "medium") {
+export async function generateQuiz(
+    topic,
+    numQuestions = 5,
+    difficulty = "medium"
+) {
     try {
         const difficultyInstructions = {
             easy: "Focus on basic definitions and simple recall.",
@@ -94,7 +107,8 @@ export async function generateQuiz(topic, numQuestions = 5, difficulty = "medium
             messages: [
                 {
                     role: "system",
-                    content: "You are a quiz generator. Return ONLY valid JSON arrays. No markdown, no backticks, no explanation.",
+                    content:
+                        "You are a quiz generator. Return ONLY valid JSON arrays. No markdown, no backticks, no explanation.",
                 },
                 {
                     role: "user",
@@ -118,10 +132,14 @@ Each question must follow this exact format:
 
         try {
             const parsed = JSON.parse(raw);
-            if (!Array.isArray(parsed)) throw new Error("Response is not an array");
+            if (!Array.isArray(parsed))
+                throw new Error("Response is not an array");
             return parsed;
         } catch (err) {
-            throw new ServiceError("Failed to parse quiz response", err.message);
+            throw new ServiceError(
+                "Failed to parse quiz response",
+                err.message
+            );
         }
     } catch (error) {
         if (error instanceof ServiceError) throw error;

@@ -1,4 +1,9 @@
-import { explainTopic, explainTopicStream, generateQuiz, clearHistory } from "../services/aiService.js";
+import {
+    explainTopic,
+    explainTopicStream,
+    generateQuiz,
+    clearHistory,
+} from "../services/aiService.js";
 import ValidationError from "../utils/errors/ValidationError.js";
 
 export const explainController = async (req, res, next) => {
@@ -35,7 +40,9 @@ export const explainStreamController = async (req, res, next) => {
         res.end();
     } catch (error) {
         if (!res.writableEnded) {
-            res.write(`data: ${JSON.stringify({ error: { code: error.code || "SERVICE_ERROR", message: error.message } })}\n\n`);
+            res.write(
+                `data: ${JSON.stringify({ error: { code: error.code || "SERVICE_ERROR", message: error.message } })}\n\n`
+            );
             res.end();
         }
         next(error);

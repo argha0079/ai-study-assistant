@@ -1,17 +1,18 @@
+import logger from "../config/loggerConfig.js";
 import PrismaError from "../utils/errors/PrismaError.js";
 
-function errorHandler(err, req, res, next) {
+function errorHandler(err, req, res, _next) {
     let handledError = err;
 
     if (err.name && err.name.startsWith("Prisma")) {
         handledError = new PrismaError(err);
     }
 
-    console.error({
+    logger.error({
         name: err.name,
         message: err.message,
         stack: err.stack,
-        path: req.originalUrl
+        path: req.originalUrl,
     });
 
     const statusCode = handledError.statusCode || 500;
@@ -21,8 +22,8 @@ function errorHandler(err, req, res, next) {
     const response = {
         error: {
             code: errorCode,
-            message: errorMessage
-        }
+            message: errorMessage,
+        },
     };
 
     if (handledError.details) {

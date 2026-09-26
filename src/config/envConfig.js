@@ -9,5 +9,6 @@ export const {
     DATABASE_URL,
     REDIS_URL,
     JWT_SECRET,
-    JWT_REFRESH_SECRET
+    JWT_REFRESH_SECRET,
+    RESEND_API_KEY,
 } = process.env;

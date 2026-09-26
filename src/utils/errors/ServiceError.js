@@ -1,7 +1,11 @@
 import { StatusCodes } from "http-status-codes";
 
 class ServiceError extends Error {
-    constructor(message = "Something went wrong", explanation = "Service layer error", statusCode = StatusCodes.INTERNAL_SERVER_ERROR) {
+    constructor(
+        message = "Something went wrong",
+        explanation = "Service layer error",
+        statusCode = StatusCodes.INTERNAL_SERVER_ERROR
+    ) {
         super(message);
         this.name = "ServiceError";
         this.message = message;

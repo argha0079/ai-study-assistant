@@ -1,5 +1,10 @@
 import express from "express";
-import { clearController, explainController, quizController, explainStreamController } from "../controllers/aiController.js";
+import {
+    clearController,
+    explainController,
+    quizController,
+    explainStreamController,
+} from "../controllers/aiController.js";
 
 const router = express.Router();
 

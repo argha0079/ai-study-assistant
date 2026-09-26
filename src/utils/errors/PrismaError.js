@@ -50,7 +50,8 @@ class PrismaError extends Error {
                 break;
 
             case "P2002":
-                this.message = "A record with the provided value already exists";
+                this.message =
+                    "A record with the provided value already exists";
                 this.statusCode = StatusCodes.CONFLICT;
                 this.code = "DUPLICATE_RECORD";
                 break;
