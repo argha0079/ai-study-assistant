@@ -37,6 +37,7 @@ jobs:
               run: npm install -g @railway/cli
 
             - name: Deploy
-              run: railway up --detach
+              run: railway up --detach --service ai-study-assistant
               env:
                   RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+                  RAILWAY_PROJECT_ID: d3ab715c-5950-49f6-a0b7-b56e28f3b0ca
