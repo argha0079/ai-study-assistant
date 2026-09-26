@@ -20,7 +20,7 @@ const SALT_ROUNDS = 10;
 const ACCESS_TOKEN_EXPIRY = "15m";
 const REFRESH_TOKEN_EXPIRY = "7d";
 
-const generateTokens = (userId) => {
+export const generateTokens = (userId) => {
     const accessToken = jwt.sign({ userId }, JWT_SECRET, {
         expiresIn: ACCESS_TOKEN_EXPIRY,
     });
@@ -30,7 +30,7 @@ const generateTokens = (userId) => {
     return { accessToken, refreshToken };
 };
 
-const getRefreshExpiry = () => {
+export const getRefreshExpiry = () => {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
     return expiresAt;
@@ -57,6 +57,16 @@ export const verifyEmail = async (email, otp) => {
     const user = await findUserByEmail(email);
     if (!user) throw new ServiceError("User not found", "USER_NOT_FOUND");
     await markUserVerified(email);
+};
+
+export const loginWithOAuth = async (userId) => {
+    const { accessToken, refreshToken } = generateTokens(userId);
+    await createRefreshToken(
+        refreshToken,
+        userId,
+        getRefreshExpiry()
+    );
+    return { accessToken, refreshToken };
 };
 
 export const loginUser = async (email, password) => {

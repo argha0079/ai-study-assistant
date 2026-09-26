@@ -1,11 +1,14 @@
 import {
     registerUser,
     loginUser,
+    loginWithOAuth,
     refreshAccessToken,
     logoutUser,
     verifyEmail,
 } from "../services/authService.js";
 import ValidationError from "../utils/errors/ValidationError.js";
+import UnauthorizedError from "../utils/errors/UnauthorizedError.js";
+import { FRONTEND_URL } from "../config/envConfig.js";
 
 export const register = async (req, res, next) => {
     try {
@@ -39,6 +42,22 @@ export const verify = async (req, res, next) => {
     }
 };
 
+export const githubCallback = async (req, res, next) => {
+    try {
+        const data = await loginWithOAuth(req.user.id);
+        res.cookie("refreshToken", data.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        res.redirect(FRONTEND_URL);
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
@@ -49,7 +68,17 @@ export const login = async (req, res, next) => {
             });
         }
         const data = await loginUser(email, password);
-        res.json(data);
+        res.cookie("refreshToken", data.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        res.json({
+            accessToken: data.accessToken,
+            user: data.user,
+        });
     } catch (error) {
         next(error);
     }
@@ -57,14 +86,23 @@ export const login = async (req, res, next) => {
 
 export const refresh = async (req, res, next) => {
     try {
-        const { refreshToken } = req.body;
+        const refreshToken = req.cookies.refreshToken;
         if (!refreshToken) {
-            throw new ValidationError("Refresh token required", {
-                refreshToken: true,
-            });
+            throw new UnauthorizedError(
+                "Refresh token required",
+                "REFRESH_TOKEN_REQUIRED"
+            );
         }
         const data = await refreshAccessToken(refreshToken);
-        res.json(data);
+        res.cookie("refreshToken", data.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+        res.json({
+            accessToken: data.accessToken,
+        });
     } catch (error) {
         next(error);
     }
@@ -72,8 +110,18 @@ export const refresh = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
     try {
-        const { refreshToken } = req.body;
-        if (refreshToken) await logoutUser(refreshToken);
+        const refreshToken = req.cookies.refreshToken;
+
+        if (refreshToken) {
+            await logoutUser(refreshToken);
+        }
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+        });
+
         res.json({ message: "Logged out" });
     } catch (error) {
         next(error);

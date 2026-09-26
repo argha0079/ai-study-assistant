@@ -20,6 +20,7 @@
         "@prisma/adapter-pg": "^7.10.0",
         "@prisma/client": "^7.10.0",
         "bcrypt": "^6.0.0",
+        "cookie-parser": "^1.4.7",
         "cors": "^2.8.6",
         "dotenv": "^17.4.2",
         "express": "^5.2.1",
@@ -28,6 +29,9 @@
         "ioredis": "^6.0.0",
         "jsonwebtoken": "^9.0.3",
         "morgan": "^1.12.1",
+        "passport": "^0.7.0",
+        "passport-github2": "^0.1.12",
+        "passport-google-oauth20": "^2.0.0",
         "pg": "^8.23.0",
         "resend": "^6.30.0",
         "winston": "^3.19.0"
