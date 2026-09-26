@@ -70,7 +70,7 @@ export const login = async (req, res, next) => {
         const data = await loginUser(email, password);
         res.cookie("refreshToken", data.refreshToken, {
             httpOnly: true,
-            secure:  true,
+            secure: true,
             sameSite: "none",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });

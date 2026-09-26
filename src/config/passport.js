@@ -20,7 +20,6 @@ console.log("GitHub OAuth env check:", {
     clientSecret: Boolean(GITHUB_CLIENT_SECRET),
     callbackUrl: Boolean(GITHUB_CALLBACK_URL),
 });
-/* eslint-disable no-console */
 
 passport.use(
     new GitHubStrategy(
