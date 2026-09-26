@@ -17,7 +17,7 @@ const setupAndStartServer = () => {
         cors({
             origin: [
                 "http://localhost:5173",
-                "https://ai-study-assistant-frontend-j44eg030i-hack-nova5.vercel.app",
+                "https://ai-study-assistant-frontend-mu.vercel.app",
             ],
             credentials: true,
         })
